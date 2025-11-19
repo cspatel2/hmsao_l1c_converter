@@ -54,7 +54,7 @@ for win in windows:
         id = 'kr'
         units = 'Rayleighs/nm'
 
-    for fn in fns[:1]:
+    for fn in fns:
         print(f"Processing file: {fn.name}...")
         ds = xr.open_dataset(fn)
         ss = ds.copy()
