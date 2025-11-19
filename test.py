@@ -14,7 +14,5 @@ ds = xr.open_dataset(fns[0])
 # %%
 ds
 # %%
-ds.countrate.isel(tstamp = 0).plot(y='za', vmin = 0, vmax = 1700)
-# %%
-ds
+ds.intensity.isel(tstamp = 0).plot(y='za', vmin = 0, vmax = 1700)
 # %%

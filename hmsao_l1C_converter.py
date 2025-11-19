@@ -48,24 +48,33 @@ for win in windows:
     if photon: 
         print ("Calibrating to photons/s.cm2.sr...")
         id = 'kp'
-        units = 'photons/s.cm2.sr'
+        units = 'photons/s.cm2.sr.nm'
     else: 
         print ("Calibrating to Rayleighs...")
         id = 'kr'
-        units = 'Rayleighs'
+        units = 'Rayleighs/nm'
 
-    for fn in fns:
+    for fn in fns[:1]:
         print(f"Processing file: {fn.name}...")
         ds = xr.open_dataset(fn)
         ss = ds.copy()
-        ss.countrate.data = ss.countrate.data * calibds[id].data
-        ss.noise.data = ss.noise.data * calibds[id].data
+        dwl = np.mean(np.diff(ds.wavelength.data))
+        ss.countrate.data = ss.countrate.data * calibds[id].data / dwl
+        ss.noise.data = ss.noise.data * calibds[id].data / dwl
 
         all_vars = list(ds.coords) + list(ds.keys())
         for var in all_vars:
-            ss[var].attrs = {k:v for k,v in ds[var].attrs.items() if k not in 'unit'}
+            attrs = {}
+            for k,v in ds[var].attrs.items():
+                if k not in ['unit']:
+                    continue
+                else: k = 'units'
+                attrs[k] = v
+            ss[var].attrs = attrs
 
         ss['countrate'].attrs.update({'units': units})
+        ss['countrate'].attrs.update({'long_name': 'Calibrated Intensity'}) 
+        ss = ss.rename_vars({'countrate':'intensity'})
         ss['noise'].attrs.update({'units': units})
         
         attrs = {k:v for k,v in ds.attrs.items() if k not in 'unit'}
