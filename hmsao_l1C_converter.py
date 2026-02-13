@@ -9,6 +9,8 @@ from pathlib import Path
 LOCALPATH = Path(__file__).parent
 CALIBMAP_DIR = LOCALPATH / 'calib_maps'
 
+
+
 def main(
     datdir: Path = Path('/home/charmi/locsststor/proc/hmsao/l1b'),
     destdir: str | Path | None = '',
