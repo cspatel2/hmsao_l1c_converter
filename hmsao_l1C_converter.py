@@ -3,6 +3,7 @@
 # %%
 from dataclasses import dataclass
 from datetime import datetime
+import sys
 import numpy as np
 import tqdm
 from tqdm import tqdm
@@ -79,7 +80,7 @@ def main(config: L1CConfig):
 
     #run conversion
     for win in valid_windows:
-        print(f"Processing window: {win}")
+        # print(f"Processing window: {win}")
         calibfns = list(config.calibmap_dir.glob(f'*{win}*.nc'))
         if len(calibfns) > 0:
             print(
@@ -89,7 +90,7 @@ def main(config: L1CConfig):
         calibds = xr.open_dataset(cfn)  # type: ignore
 
         fns = list(config.rootdir.glob(f'**/*{win}*.nc'))
-        print(f"Found {len(fns)} files to process.")
+        # print(f"Found {len(fns)} files to process.")
         fns.sort()
 
         if config.photon:
@@ -101,7 +102,7 @@ def main(config: L1CConfig):
             id = 'kr'
             units = 'Rayleighs/nm'
 
-        for fn in tqdm(fns):
+        for fn in tqdm(fns, desc=f"Processing window {win}", unit="file"):
             # print(f"Processing file: {fn.name}...", end='', flush=True)
             ds = xr.open_dataset(fn)
             ss = ds.copy()
@@ -132,10 +133,11 @@ def main(config: L1CConfig):
                 "%m/%d/%Y, %H:%M:%S EDT")
             encoding = {var: {'zlib': True}
                         for var in (*ss.data_vars.keys(), *ss.coords.keys())}
-            print('\tsaving...', end='', flush=True)
+            # print('\tsaving...', end='', flush=True)
             outfn = config.destdir.joinpath(fn.stem.replace('l1b', 'l1c') + fn.suffix)
             ss.to_netcdf(outfn, encoding=encoding)
-            print('\tDone.', flush=True)
+            # print('\tDone.', flush=True)
+            sys.stdout.flush()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert L1B files to L1C using calibration maps.")
