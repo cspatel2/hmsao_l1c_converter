@@ -4,13 +4,14 @@
 from dataclasses import dataclass
 from datetime import datetime
 import sys
+import hdf5plugin
 import numpy as np
 import tqdm
 from tqdm import tqdm
 import xarray as xr
 from pathlib import Path
 import argparse
-    
+xr.set_options(netcdf_engine_order=["h5netcdf", "netcdf4", "scipy"])
 # %%
 @dataclass
 class L1CConfig:
@@ -108,7 +109,7 @@ def main(config: L1CConfig):
             ss = ds.copy()
             dwl = np.mean(np.diff(ds.wavelength.data))
             ss.countrate.data = ss.countrate.data * calibds[id].data / dwl
-            ss.noise.data = ss.noise.data * calibds[id].data / dwl
+            ss.noise.data = ss.noise.data * calibds[id].data / dwl # currently ignoring noise in calibration
 
             all_vars = list(ds.coords) + list(ds.keys())
             for var in all_vars:
@@ -131,7 +132,7 @@ def main(config: L1CConfig):
             ss.attrs['DataProcessingLevel'] = 'L1c - Calibrated.'
             ss.attrs['FileCreationDate'] = datetime.now().strftime(
                 "%m/%d/%Y, %H:%M:%S EDT")
-            encoding = {var: {'zlib': True}
+            encoding = {var: hdf5plugin.Zstd(clevel=3)
                         for var in (*ss.data_vars.keys(), *ss.coords.keys())}
             # print('\tsaving...', end='', flush=True)
             outfn = config.destdir.joinpath(fn.stem.replace('l1b', 'l1c') + fn.suffix)
