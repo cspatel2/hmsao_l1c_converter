@@ -107,6 +107,8 @@ def main(config: L1CConfig):
             # print(f"Processing file: {fn.name}...", end='', flush=True)
             ds = xr.open_dataset(fn)
             ss = ds.copy()
+            # ss = ss.sel(wavelength=calibds.wavelength.data)  # ADDED FOR NOW CHECK IT LATER
+            ss = ss.sel(za = calibds.za.data)  # ADDED FOR NOW CHECK IT LATER
             dwl = np.mean(np.diff(ds.wavelength.data))
             ss.countrate.data = ss.countrate.data * calibds[id].data / dwl
             ss.noise.data = ss.noise.data * calibds[id].data / dwl # currently ignoring noise in calibration
